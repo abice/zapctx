@@ -2,13 +2,13 @@ package zapctx
 
 import (
 	"context"
-	"os"
 	"strings"
 	"testing"
 
 	"github.com/kelseyhightower/envconfig"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap/zaptest"
 )
 
 const unsetValue string = `NOT_SET`
@@ -75,18 +75,10 @@ func Init(appName string) *zap.Logger {
 	return zap.L()
 }
 
-func InitTest(t testing.TB, discard bool) *zap.Logger {
-	if discard {
-		zap.ReplaceGlobals(zap.NewNop())
-		return zap.L()
-	}
-	zapConfig = zap.NewDevelopmentConfig()
-	zapConfig.Encoding = "console"
-
-	os.Setenv("LOG_ENVIRONMENT", "dev")
-	defer os.Unsetenv("LOG_ENVIRONMENT")
-
-	return Init(t.Name())
+func InitTest(t testing.TB) *zap.Logger {
+	l := zaptest.NewLogger(t)
+	zap.ReplaceGlobals(l)
+	return l
 }
 
 // WithFields adds all of the given fields to the context logger.
